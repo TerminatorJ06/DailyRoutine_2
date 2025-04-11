@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Interactive Daily Routine!</title>
+    <style>
+        /* Basic Reset & Body Styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #e0f2f7 0%, #b3e5fc 100%); /* Slightly brighter cyan gradient */
+            color: #333;
+            padding: 20px;
+        }
+
+        /* Container for Centering Content */
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            overflow: hidden; /* Contains floated elements */
+        }
+
+        /* Main Heading */
+        h1 {
+            text-align: center;
+            color: #0277bd; /* Deep blue */
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .intro-text {
+            text-align: center;
+            color: #555;
+            margin-bottom: 30px;
+            font-size: 1.05em;
+        }
+
+        /* Routine Section Title */
+        h2 {
+            color: #00838f; /* Teal */
+            margin-bottom: 25px;
+            border-bottom: 2px solid #b2ebf2; /* Light cyan border */
+            padding-bottom: 8px;
+            font-weight: 500;
+        }
+
+        /* Timeline Styling */
+        .timeline {
+            position: relative;
+            padding-left: 30px; /* Space for the timeline line/dots */
+            border-left: 3px solid #80deea; /* Light teal line */
+        }
+
+        /* Individual Time Slot (using details/summary) */
+        .time-slot {
+            position: relative;
+            margin-bottom: 15px; /* Reduced margin as details add space */
+        }
+
+        .time-slot details {
+            background-color: #f4faff; /* Very light blue */
+            border-radius: 8px;
+            border: 1px solid #e0f7fa;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .time-slot details[open] {
+             background-color: #e9f7ff; /* Slightly darker when open */
+        }
+
+        .time-slot summary {
+            padding: 15px 15px 15px 35px; /* Increased left padding for checkbox */
+            cursor: pointer;
+            outline: none; /* Remove focus outline */
+            position: relative; /* For positioning checkbox and marker */
+            list-style: none; /* Remove default marker */
+            transition: background-color 0.2s ease;
+            border-radius: 8px; /* Match details */
+        }
+
+        .time-slot summary:hover {
+            background-color: #e6f4ff;
+        }
+
+        .time-slot summary::-webkit-details-marker { display: none; } /* Hide marker on Chrome/Safari */
+        .time-slot summary::marker { display: none; } /* Hide marker on Firefox */
+
+
+        /* Timeline Marker (Dot) - Positioned relative to summary */
+        .time-slot summary::before {
+            content: '';
+            position: absolute;
+            left: -40px; /* Position relative to the padding-left of .timeline */
+            top: 21px;
+            width: 12px;
+            height: 12px;
+            background-color: #00bcd4; /* Default cyan dot */
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            z-index: 1;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Checkbox Styling */
+        .task-checkbox {
+            position: absolute;
+            left: 10px;
+            top: 19px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #0288d1; /* Customize checkbox color */
+            margin-right: 10px;
+        }
+
+        /* Time Display */
+        .time {
+            font-weight: bold;
+            color: #01579b; /* Darker blue for time */
+            font-size: 1.1em;
+            display: inline-block; /* Keep on same line as checkbox */
+            transition: color 0.3s ease, opacity 0.3s ease;
+        }
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 8px;
+            vertical-align: middle; /* Align emoji nicely */
+        }
+
+        /* Activity Details Container */
+        .activity-details {
+            padding: 5px 20px 15px 55px; /* Align with summary text */
+            border-top: 1px dashed #ccefff;
+            margin-top: 5px;
+            transition: color 0.3s ease, opacity 0.3s ease;
+        }
+
+        /* Activity Description */
+        .activity {
+            color: #555;
+            font-size: 1em;
+            display: block; /* Ensure it takes its own line */
+            margin-bottom: 8px;
+        }
+
+        /* Pro Tip Styling */
+        .pro-tip {
+            display: block;
+            font-size: 0.9em;
+            font-style: italic;
+            color: #1e88e5; /* Bright blue */
+            margin-top: 5px;
+        }
+        .pro-tip::before {
+            content: "💡 ";
+        }
+
+
+        /* Styling when checkbox is checked */
+        .task-checkbox:checked + label .time,
+        .task-checkbox:checked + label .activity-details .activity,
+        .task-checkbox:checked + label .activity-details {
+            text-decoration: line-through;
+            color: #99aabb; /* Muted color */
+            opacity: 0.7;
+        }
+        .task-checkbox:checked + label .activity-details .pro-tip {
+             text-decoration: none; /* Don't strikethrough tips */
+             opacity: 0.6;
+        }
+        .task-checkbox:checked + label summary::before {
+            background-color: #78c8d4; /* Faded dot */
+        }
+        .task-checkbox:checked + label summary {
+            /* Optional: slightly different background when checked */
+            /* background-color: #f0f0f0; */
+        }
+
+        /* Highlight Work Time Slots */
+        .work-time details { background-color: #fff8e1; border-color: #ffecb3; }
+        .work-time details[open] { background-color: #fff3cd; }
+        .work-time summary:hover { background-color: #fff6e0; }
+        .work-time summary::before { background-color: #ffc107; } /* Amber dot */
+        .work-time .time { color: #f57f17; }
+        .work-time .pro-tip { color: #ffa000; }
+        .task-checkbox:checked + label.work-time-label summary::before { background-color: #ffd54f; }
+
+        /* Highlight Break Time Slots */
+        .break-time details { background-color: #e8f5e9; border-color: #c8e6c9; }
+        .break-time details[open] { background-color: #dff0e0; }
+        .break-time summary:hover { background-color: #e0f2e1; }
+        .break-time summary::before { background-color: #4caf50; } /* Green dot */
+        .break-time .time { color: #2e7d32; }
+        .break-time .pro-tip { color: #388e3c; }
+        .task-checkbox:checked + label.break-time-label summary::before { background-color: #81c784; }
+
+        /* Highlight Meal Time Slots */
+        .meal-time details { background-color: #fff3e0; border-color: #ffe0b2; }
+        .meal-time details[open] { background-color: #ffebd0; }
+        .meal-time summary:hover { background-color: #fef1d7; }
+        .meal-time summary::before { background-color: #ff9800; } /* Orange dot */
+        .meal-time .time { color: #e65100; }
+        .meal-time .pro-tip { color: #f57c00; }
+        .task-checkbox:checked + label.meal-time-label summary::before { background-color: #ffb74d; }
+
+        /* Highlight Personal Time Slots */
+        .personal-time details { background-color: #fce4ec; border-color: #f8bbd0; }
+        .personal-time details[open] { background-color: #fbd7e3; }
+        .personal-time summary:hover { background-color: #fae0ea; }
+        .personal-time summary::before { background-color: #e91e63; } /* Pink dot */
+        .personal-time .time { color: #ad1457; }
+        .personal-time .pro-tip { color: #c2185b; }
+        .task-checkbox:checked + label.personal-time-label summary::before { background-color: #f48fb1; }
+
+        /* Highlight Evening/Wind Down Slots */
+        .evening-time details { background-color: #ede7f6; border-color: #d1c4e9; }
+        .evening-time details[open] { background-color: #e5dcf0; }
+        .evening-time summary:hover { background-color: #e9e2f3; }
+        .evening-time summary::before { background-color: #673ab7; } /* Purple dot */
+        .evening-time .time { color: #4527a0; }
+        .evening-time .pro-tip { color: #512da8; }
+        .task-checkbox:checked + label.evening-time-label summary::before { background-color: #9575cd; }
+
+
+        /* Reset Button Styling */
+        .reset-button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .reset-button {
+            padding: 10px 25px;
+            font-size: 1em;
+            color: #fff;
+            background-color: #ef5350; /* Reddish */
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .reset-button:hover {
+            background-color: #e53935; /* Darker red */
+        }
+        .reset-button:active {
+            transform: scale(0.98);
+        }
+
+
+        /* Footer (Optional) */
+        .footer {
+           text-align: center;
+           margin-top: 40px;
+           font-size: 0.9em;
+           color: #777;
+        }
+
+        /* Simple Responsive Adjustment */
+        @media (max-width: 600px) {
+           body {
+               padding: 10px;
+           }
+           .container {
+               padding: 15px;
+               margin: 15px auto;
+           }
+           h1 {
+               font-size: 1.6em;
+           }
+           .intro-text {
+               font-size: 0.95em;
+           }
+           .timeline {
+               padding-left: 20px; /* Adjust padding */
+               border-left-width: 2px;
+           }
+            .time-slot summary {
+                padding: 12px 10px 12px 35px;
+            }
+           .time-slot summary::before {
+               left: -28px; /* Adjust dot position */
+               top: 18px;
+               width: 10px;
+               height: 10px;
+           }
+            .task-checkbox {
+                top: 16px;
+            }
+           .activity-details {
+               padding: 5px 10px 12px 40px;
+           }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🚀 My Interactive Daily Routine! 🚀</h1>
+        <p class="intro-text">Check off tasks as you go and click each time slot to see the details. Have a productive and balanced day!</p>
+
+        <h2>Full Day Schedule (8:00 AM - 11:00 PM)</h2>
+
+        <div class="timeline">
+
+            <!-- Morning -->
+            <div class="time-slot personal-time">
+                <details>
+                    <summary>
+                        <input type="checkbox" id="task1" class="task-checkbox">
+                        <label for="task1" class="personal-time-label">
+                             <span class="time"><span class="emoji">☀️</span> 8:00 AM</span>
+                             <div class="activity-details">
+                                <span class="activity">Wake Up, Hydrate (Glass of Water), Light Stretching (5-10 mins). Avoid phone first thing.</span>
+                                <span class="pro-tip">Starting hydrated sets a positive tone!</span>
+                             </div>
+                         </label>
+                    </summary>
+                </details>
+            </div>
+
+            <div class="time-slot personal-time">
+                 <details>
+                    <summary>
+                        <input type="checkbox" id="task2" class="task-checkbox">
+                        <label for="task2" class="personal-time-label">
+                            <span class="time"><span class="emoji">🧼</span> 8:30 AM</span>
+                             <div class="activity-details">
+                                <span class="activity">Morning Hygiene (Brush teeth, wash face, etc.), Get Dressed.</span>
+                             </div>
+                         </label>
+                    </summary>
+                 </details>
+            </div>
+
+            <div class="time-slot meal-time">
+                 <details>
+                    <summary>
+                        <input type="checkbox" id="task3" class="task-checkbox">
+                        <label for="task3" class="meal-time-label">
+                            <span class="time"><span class="emoji">🥣</span> 8:45 AM</span>
+                            <div class="activity-details">
+                                <span class="activity">Healthy Breakfast (e.g., Oats, Eggs, Fruit, Yogurt). Prepare work essentials if needed.</span>
+                                <span class="pro-tip">Fuel your brain for the day ahead.</span>
+                            </div>
+                        </label>
+                    </summary>
+                 </details>
+            </div>
+
+            <!-- Work Block -->
+            <div class="time-slot work-time">
+                <details>
+                    <summary>
+                        <input type="checkbox" id="task4" class="task-checkbox">
+                        <label for="task4" class="work-time-label">
+                            <span class="time"><span class="emoji">💻</span> 9:00 AM</span>
+                            <div class="activity-details">
+                                <span class="activity"><strong>Start Work:</strong> Check emails briefly, prioritize tasks for the day. Begin focused work block 1.</span>
+                                <span class="pro-tip">Tackle the most important task first (Eat The Frog!).</span>
+                             </div>
+                        </label>
+                    </summary>
+                </details>
+            </div>
+
+            <div class="time-slot break-time">
+                <details>
+                    <summary>
+                        <input type="checkbox" id="task5" class="task-checkbox">
+                        <label for="task5" class="break-time-label">
+                            <span class="time"><span class="emoji">💧</span> 10:30 AM</span>
+                            <div class="activity-details">
+                                <span class="activity"><strong>Short Break:</strong> Stand up, stretch, walk around, refill water. Step away from the screen (10-15 mins).</span>
+                                <span class="pro-tip">Movement boosts circulation and focus.</span>
+                            </div>
+                        </label>
+                    </summary>
+                </details>
+            </div>
+
+             <div class="time-slot work-time">
+                <details>
+                    <summary>
+                        <input type="checkbox" id="task6" class="task-checkbox">
+                        <label for="task6" class="work-time-label">
+                            <span class="time"><span class="emoji">💡</span> 10:45 AM</span>
+                            <div class="activity-details">
+                                <span class="activity"><strong>Resume Work:</strong> Focused work block 2. Tackle challenging tasks.</span>
+                            </div>
+                        </label>
+                    </summary>
+                </details>
+            </div>
+
+            <div class="time-slot meal-time">
+                <details>
+                    <summary>
+                         <input type="checkbox" id="task7" class="task-checkbox">
+                        <label for="task7" class="meal-time-label">
+                            <span class="time"><span class="emoji">🥪</span> 12:30 PM</span>
+                            <div class="activity-details">
+                                <span class="activity"><strong>Lunch Break:</strong> Prepare/Eat a nutritious lunch. Step away from your workspace completely. Maybe a short walk outside (30-60 mins).</span>
+                                <span class="pro-tip">Getting some sun and fresh air is great for a reset.</span>
+                            </div>
+                        </label>
+                    </summary>
+                </details>
+            </div>
+
+             <div class="time-slot work-time">
+                <details>
+                    <summary>
+                        <input type="checkbox" id="task8" class="task-checkbox">
+                        <label for="task8" class="work-time-label">
+                            <span class="time"><span class="emoji">🗣️</span> 1:30 PM</span>
+                            <div class="activity-details">
+                                <span class="activity"><strong>Resume Work:</strong> Focused work block 3. Handle meetings or collaborative tasks if possible.</span>
+                            </div>
+                         </label>
+                    </summary>
+                </details>
+            </div>
+
+             <div class="time-slot break-time">
+                 <details>
+                    <summary>
+                        <input type="checkbox" id="task9" class="task-checkbox">
+                        <label for="task9" class="break-time-label">
+                            <span class="time"><span class="emoji">🍎</span> 3:00 PM</span>
+                            <div class="activity-details">
+                                <span class="activity"><strong>Short Break:</strong> Quick walk, healthy snack (fruit, nuts), hydrate. Mental reset (10-15 mins).</span>
+                            </div>
+                        </label>
+                    </summary>
+                </details>
+            </div>
+
+             <div class="time-slot work-time">
+                 <details>
+                    <summary>
+                        <input type="checkbox" id="task10" class="task-checkbox">
+                        <label for="task10" class="work-time-label">
+                            <span class="time"><span class="emoji">✅</span> 3:15 PM</span>
+                             <div class="activity-details">
+                                <span class="activity"><strong>Work - Wrap Up:</strong> Finish remaining tasks, answer emails, plan for tomorrow. Tidy workspace.</span>
+                                <span class="pro-tip">Planning tomorrow today makes the morning smoother.</span>
+                             </div>
+                        </label>
+                    </summary>
+                 </details>
+            </div>
+
+             <div class="time-slot work-time">
+                 <details open> <!-- Keep this one open by default -->
+                    <summary>
+                        <input type="checkbox" id="task11" class="task-checkbox">
+                        <label for="task11" class="work-time-label">
+                            <span class="time"><span class="emoji">🎉</span> 4:30 PM</span>
+                            <div class="activity-details">
+                                <span class="activity"><strong>End Workday:</strong> Officially log off. Take a few minutes to transition mentally out of work mode.</span>
+                                <span class="pro-tip">Close work tabs, put away work items. You did it!</span>
+                            </div>
+                         </label>
+                    </summary>
+                 </details>
+            </div>
+
+            <!-- Afternoon/Evening -->
+            <div class="time-slot personal-time">
+                <details>
+                    <summary>
+                        <input type="checkbox" id="task12" class="task-checkbox">
+                        <label for="task12" class="personal-time-label">
+                            <span class="time"><span class="emoji">🏃</span> 5:00 PM</span>
+                             <div class="activity-details">
+                                <span class="activity"><strong>Decompress & Move:</strong> Exercise (Gym, Run, Yoga, Walk) or engage in a physical hobby.</span>
+                                <span class="pro-tip">Physical activity is a great stress reliever.</span>
+                             </div>
+                        </label>
+                    </summary>
+                </details>
+            </div>
+
+            <div class="time-slot meal-time">
+                <details>
+                    <summary>
+                        <input type="checkbox" id="task13" class="task-checkbox">
+                        <label for="task13" class="meal-time-label">
+                            <span class="time"><span class="emoji">🍽️</span> 6:30 PM</span>
+                             <div class="activity-details">
+                                <span class="activity">Prepare & Enjoy Dinner. Eat mindfully, perhaps with family or housemates.</span>
+                             </div>
+                        </label>
+                    </summary>
+                </details>
+            </div>
+
+             <div class="time-slot personal-time">
+                 <details>
+                    <summary>
+                        <input type="checkbox" id="task14" class="task-checkbox">
+                        <label for="task14" class="personal-time-label">
+                            <span class="time"><span class="emoji">🎨</span> 7:30 PM</span>
+                             <div class="activity-details">
+                                <span class="activity"><strong>Free Time / Hobbies:</strong> Engage in activities you enjoy – reading, learning, creativity, socializing, light entertainment.</span>
+                                <span class="pro-tip">Make time for things that bring you joy!</span>
+                             </div>
+                        </label>
+                    </summary>
+                 </details>
+            </div>
+
+             <div class="time-slot evening-time">
+                 <details>
+                    <summary>
+                        <input type="checkbox" id="task15" class="task-checkbox">
+                        <label for="task15" class="evening-time-label">
+                            <span class="time"><span class="emoji">🧘</span> 9:00 PM</span>
+                             <div class="activity-details">
+                                <span class="activity"><strong>Wind-Down Routine:</strong> Dim lights, reduce screen time (especially stimulating content). Read a book, listen to calming music/podcast, light tidying.</span>
+                                <span class="pro-tip">Signal to your body that it's time to relax.</span>
+                             </div>
+                        </label>
+                    </summary>
+                 </details>
+            </div>
+
+            <div class="time-slot evening-time">
+                <details>
+                    <summary>
+                         <input type="checkbox" id="task16" class="task-checkbox">
+                        <label for="task16" class="evening-time-label">
+                            <span class="time"><span class="emoji">🦷</span> 10:00 PM</span>
+                             <div class="activity-details">
+                                <span class="activity">Evening Hygiene, Prepare for Bed. Lay out clothes for tomorrow if helpful.</span>
+                             </div>
+                        </label>
+                    </summary>
+                 </details>
+            </div>
+
+            <div class="time-slot evening-time">
+                 <details>
+                    <summary>
+                        <input type="checkbox" id="task17" class="task-checkbox">
+                        <label for="task17" class="evening-time-label">
+                            <span class="time"><span class="emoji">📖</span> 10:30 PM</span>
+                             <div class="activity-details">
+                                <span class="activity">Relax in Bed: No screens. Gentle stretching, meditation, deep breathing, or reading (physical book).</span>
+                             </div>
+                        </label>
+                    </summary>
+                 </details>
+            </div>
+
+            <div class="time-slot evening-time">
+                <details>
+                    <summary>
+                        <input type="checkbox" id="task18" class="task-checkbox">
+                        <label for="task18" class="evening-time-label">
+                            <span class="time"><span class="emoji">😴</span> 11:00 PM</span>
+                             <div class="activity-details">
+                                <span class="activity"><strong>Sleep.</strong> Aim for 7-9 hours of quality sleep. Sweet dreams!</span>
+                             </div>
+                        </label>
+                    </summary>
+                </details>
+            </div>
+
+        </div> <!-- End Timeline -->
+
+        <div class="reset-button-container">
+            <button class="reset-button" onclick="resetTasks()">Reset All Tasks</button>
+        </div>
+
+        <div class="footer">
+            <p>Stay consistent, but be flexible. Adjust as needed for your well-being!</p>
+        </div>
+
+    </div> <!-- End Container -->
+
+    <script>
+        // Simple JavaScript to uncheck all checkboxes
+        function resetTasks() {
+            const checkboxes = document.querySelectorAll('.task-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            // Optional: Close all details elements
+            const detailsElements = document.querySelectorAll('.time-slot details');
+             detailsElements.forEach(details => {
+                 details.removeAttribute('open');
+             });
+             // You might want to re-open the default one if you have one
+             // document.querySelector('#task11').closest('details').setAttribute('open', '');
+        }
+    </script>
+
+</body>
+</html>
